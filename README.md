@@ -1,1 +1,1 @@
-# IsoTensor
+# Differentiable Isometric Tensor Network
