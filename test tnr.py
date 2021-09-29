@@ -38,24 +38,24 @@ def beta_function():
     ax1 = fig.add_subplot(2, 1, 1)
     ax1.plot(beta_list, lnZ_exact, label='exact', color='royalblue', alpha=0.8)
     ax1.scatter(beta_list, lnZ_list, marker='+', s=80, label='computed', color='coral', alpha=0.8)
-    ax1.set_xlabel(r'$\beta$', fontsize=13)
-    ax1.set_ylabel(r'$\ln{Z}$', fontsize=13)
-    ax1.tick_params(labelsize=13)
-    plt.annotate('(a)', xy=(-0.1, 1.1), xycoords='axes fraction', fontsize=13, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
-    ax1.legend(loc='center right', fontsize=12)
+    ax1.set_xlabel(r'$\beta$', fontsize=14)
+    ax1.set_ylabel(r'$\ln{Z}$', fontsize=14)
+    ax1.tick_params(labelsize=14)
+    plt.annotate('(a)', xy=(-0.1, 1.1), xycoords='axes fraction', fontsize=14, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
+    ax1.legend(loc='center right', fontsize=13)
 
     
     ax2 = fig.add_subplot(2, 1, 2)
     ax2.plot(beta_list, E_exact, label='exact', color='royalblue', alpha=0.8)
     # ax2.scatter(beta_list, E_list, marker='+', s=80, label='auto differentiation', color='coral', alpha=0.7)
     ax2.scatter(beta_list[1:-1:], E_manual, marker='x', s=40, label='finite-difference', color='coral', alpha=0.7)
-    ax2.set_xlabel(r'$\beta$', fontsize=13)
-    ax2.set_ylabel(r'internal energy', fontsize=13)
-    ax2.tick_params(labelsize=13)
+    ax2.set_xlabel(r'$\beta$', fontsize=14)
+    ax2.set_ylabel(r'internal energy', fontsize=14)
+    ax2.tick_params(labelsize=14)
     plt.axvline(x=beta_list[(len(beta_list)-1)/2], c='gray', ls='--',lw=1)
     plt.annotate('(b)', xy=(-0.1, 1.1), xycoords='axes fraction', fontsize=13, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
     plt.annotate(r'$\beta_c$', xy=(0.55, 1.0), xycoords='axes fraction', fontsize=13, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
-    ax2.legend(loc='upper right', fontsize=12)
+    ax2.legend(loc='upper right', fontsize=13)
 
     fig2 = plt.figure('TNR2')
     ax3 = fig2.add_subplot(1, 1, 1)
@@ -105,7 +105,7 @@ def compare_method():
     epoch = setting1[2]
 
     fig = plt.figure('loss')
-    ax1 = fig.add_subplot(1, 1, 1)
+    ax1 = fig.add_subplot(2, 1, 1)
 
     label = method1[0]
     for i in range(2,totlv,2):
@@ -116,14 +116,15 @@ def compare_method():
         ax1.loglog(range(0,epoch,2), delta2[i][::2], alpha=0.6, label=label, linestyle='-', color='purple')
         label=None
 
-    ax1.set_xlabel('iterations', fontsize=13)
-    ax1.set_ylabel('approximation errors', fontsize=13)
-    ax1.legend(loc='upper right', fontsize=12)
+    ax1.tick_params(labelsize=13)
+    ax1.set_xlabel('iterations', fontsize=14)
+    ax1.set_ylabel('approximation errors', fontsize=14)
+    ax1.legend(loc='upper right', fontsize=13)
 
     
 if __name__ == "__main__":
     # beta_function()
-    sc_calc()
-    # compare_method()
+    # sc_calc()
+    compare_method()
     
     plt.show()

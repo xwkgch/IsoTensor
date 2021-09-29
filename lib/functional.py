@@ -65,6 +65,8 @@ def rho_init(chi, dtype=torch.double, rho=None, type='two'):
 
 #-------------------------------------------------------------------------
 def class_Ising(beta):
+    r"""Generate the 2D classical Ising tensor network on square lattice with inverse temperature beta.
+    """
     lam = [torch.cosh(beta)*2, torch.sinh(beta)*2]
     A = []
     for i in range(2):
@@ -80,7 +82,12 @@ def class_Ising(beta):
     return A
 
 def get_chi(chi_HV, chi_list):
-    r"""
+    r"""Compute the bond dimensions used the horizon and vertical dimensions of the input tensor A.
+    Args:
+        chi_HV (tuple): a tuple with two elements indicating the horizon and vertical dimensions of A.
+        chi_list (list): a list of max bond dimensions [chiU, chiV, chiAH, chiAV]
+    Return:
+        chiHI, chiVI, chiU, chiV, chiAH, chiAV
     """
     with torch.no_grad():
         chiHI, chiVI = chi_HV
@@ -92,6 +99,8 @@ def get_chi(chi_HV, chi_list):
     return chiHI, chiVI, chiU, chiV, chiAH, chiAV
 
 def tensor_div(A, factor='norm'):
+    r"""divide the tensor A by a constant (the norm of A).
+    """
     with torch.no_grad():
         norm = torch.linalg.norm(A)
 
@@ -100,6 +109,10 @@ def tensor_div(A, factor='norm'):
     return A_out, norm
 
 def svd_refactor(B, chi_HV, chi_list):
+    r"""Implement SVD for tensor B and absorb the diagonal matrix.
+    Return:
+        a tuple (uB, vB)
+    """
     chiHI, chiVI, chiU, chiV, chiAH, chiAV = get_chi(chi_HV, chi_list)
     uB, sB, vB = svd_(B.reshape(chiV ** 2, chiV ** 2))
     vB = torch.conj(vB.t().conj())
@@ -114,6 +127,10 @@ def svd_refactor(B, chi_HV, chi_list):
     return uB, vB
 
 def eig_opt(C, chi_HV, chi_list):
+    r"""Implement eigen decomposition for hermite tensor C.
+    Return:
+        w
+    """
     chiHI, chiVI, chiU, chiV, chiAH, chiAV = get_chi(chi_HV, chi_list)
     _, w_tmp = torch.linalg.eigh(ncon([C, torch.conj(C)], [[1, -1, -2, 2, 3, 4], [1, -3, -4, 2, 3, 4]]).reshape(chiU ** 2, chiU ** 2))
     w = w_tmp.reshape(chiU, chiU, w_tmp.shape[1])[:,:, range(-1, -chiAV - 1, -1)]
@@ -121,6 +138,11 @@ def eig_opt(C, chi_HV, chi_list):
     return w
 
 def contract_B(A, u, vL, vR, mode='parallel'):
+    r"""Compute the B by tensor contraction.
+    mode = 'parallel' for A with parallel arrangement and 'mirror' for A with mirror arrangement.
+    Return:
+        B
+    """
     if mode == 'parallel':
         B = ncon([A,A,torch.conj(A),torch.conj(A),u,torch.conj(u),vR,vL,torch.conj(vR),torch.conj(vL)],[[5,1,13,6],[13,2,15,7],[12,8,14,6],[14,9,16,7],[1,2,3,4],[8,9,10,11],[15,4,-3],[5,3,-1],[16,11,-4],[12,10,-2]],[15,2,4,5,16,9,11,8,14,12,10,1,13,3,6,7])
     elif mode == 'mirror':
@@ -128,6 +150,9 @@ def contract_B(A, u, vL, vR, mode='parallel'):
     return B
 
 def contract_A_exact(A, mode='parallel', type='8'):
+    r"""Compute the the exact tensor contraction of sub-graph with A.
+    mode = 'parallel' for A with parallel arrangement and 'mirror' for A with mirror arrangement.
+    """
     tensors = [A,A,torch.conj(A),torch.conj(A),A,A,torch.conj(A),torch.conj(A)]
     if mode == 'parallel':
         connects = [[13,15,3,1],[3,16,14,2],[11,9,4,1],[4,10,12,2],[13,15,7,5],[7,16,14,6],[11,9,8,5],[8,10,12,6]]
@@ -139,6 +164,9 @@ def contract_A_exact(A, mode='parallel', type='8'):
     return ncon(tensors,connects,con_order)
 
 def contract_A_new(A, u, vL, vR, mode='parallel', type='8'):
+    r"""Compute the the approximate tensor contraction of sub-graph with A.
+    mode = 'parallel' for A with parallel arrangement and 'mirror' for A with mirror arrangement.
+    """
     B = contract_B(A, u, vL, vR, mode=mode)
     tensors = [torch.conj(vR),torch.conj(vL),torch.conj(u),vR,vL,u,A,A,torch.conj(A),torch.conj(A),B]
     if mode == 'parallel':
@@ -154,6 +182,12 @@ def contract_A_new(A, u, vL, vR, mode='parallel', type='8'):
 #------------------------------------------------------------------------
 
 def mera_sc(w, cut=6):
+    r"""Extract the scaling dimensions from the top isometry w in MERA.
+    Args:
+        cut (int): A integer number making a cut on the scaling dimensions.
+    return:
+        A list of scaling dimensions.
+    """
     with torch.no_grad():
         chi = w.size(-1)
         op = torch.einsum('awby, axbz -> zyxw', [w, torch.conj(w)])
@@ -166,8 +200,13 @@ def mera_sc(w, cut=6):
     return scDims
 
 def tnr_sc(A, N):
+    r"""Extract the scaling dimensions from the top tensor A in TNR.
+    Args:
+        N is the number of sites
+    return:
+        A list of scaling dimensions.
+    """
     # The memory cost is chi^N. For a 16GB RAM, keep chi^N<=2^20
-    # N is the number of sites
     def TM_sparse(A, N, psi):
         # Input A: rank 4 tensor with chi*chi*chi*chi
         # N: the number of sites

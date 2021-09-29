@@ -11,6 +11,8 @@ from lib import functional as func
 import h5py
 
 def opt_mix(net):
+    r"""Return a list of optimizations used in random mix method.
+    """
     lr0 = 1.0
     opt_list = []
     opt_list.append(optim.ev.EV(net.parameters(), lr=lr0))
@@ -20,6 +22,9 @@ def opt_mix(net):
     return opt_list
 
 def construct_MERA(model='Ising', chi_list=[4, 6, 7, 8], epoch_list=[300, 700, 1000, 2000], g=1.0):
+    r"""An example about construction of a infinite ternary MERA network with random mix method.
+    Resetting mechanism is used for Ising model.
+    """
     device = torch.device('cuda:0')
     chi_list = [4, 6, 7, 8, 9, 10]
     epoch_list = [300, 700, 1000, 2000, 3000, 4000]
@@ -69,6 +74,8 @@ def construct_MERA(model='Ising', chi_list=[4, 6, 7, 8], epoch_list=[300, 700, 1
     return net, rho
 
 def compare_method(model='Ising'):
+    r"""Comparing the performance for different optimization methods.
+    """
     device = torch.device('cuda:0')
     chi_list = [4, 6, 7, 8, 9, 10, 12]
     epoch_list = [200, 500, 2000, 3000, 3000, 3000, 4000]
@@ -76,8 +83,8 @@ def compare_method(model='Ising'):
     # epoch_list = [200, 500, 1000]
     # chi_list = [4, 6]
     # epoch_list = [30, 70]
-    # 'Evenbly-Vidal', 'SVD', 'Cayley', 
-    method_list = ['RandomMix']
+    # 
+    method_list = ['Evenbly-Vidal', 'SVD', 'Cayley', 'RandomMix']
     totlv = 3
     repeat = 1
     H = Hamiltonian(model, device)
@@ -151,38 +158,38 @@ def compare_method(model='Ising'):
     file.create_dataset("sc_list", data=sc_list)
 
 
-def g_function():
-    device = torch.device('cuda:0')
-    file=h5py.File('.\\data\\MERA g_function.hdf5',"w")
-    g_list = np.linspace(0.99, 1.01, 21)
-    g = 1.001
-    model='Ising'
-    chi_list=[4, 5, 6, 7, 8]
-    epoch_list=[300, 700, 10, 20, 30]
-    # epoch_list=[200, 500, 20, 40]
-    file.create_dataset("g_list", data=g_list)
-    dE_list = []
+# def g_function():
+#     device = torch.device('cuda:0')
+#     file=h5py.File('.\\data\\MERA g_function.hdf5',"w")
+#     g_list = np.linspace(0.99, 1.01, 21)
+#     g = 1.001
+#     model='Ising'
+#     chi_list=[4, 5, 6, 7, 8]
+#     epoch_list=[300, 700, 10, 20, 30]
+#     # epoch_list=[200, 500, 20, 40]
+#     file.create_dataset("g_list", data=g_list)
+#     dE_list = []
 
-    for g in g_list:
-        net, rho = construct_MERA(model,chi_list,epoch_list,g=g)
-        # torch.save(net, '.\\data\\MERA g_function.pt')
-        # file.create_dataset("rho", data=rho.cpu().detach().numpy())
-        H = Hamiltonian('Ising', device=device, g=g)
+#     for g in g_list:
+#         net, rho = construct_MERA(model,chi_list,epoch_list,g=g)
+#         # torch.save(net, '.\\data\\MERA g_function.pt')
+#         # file.create_dataset("rho", data=rho.cpu().detach().numpy())
+#         H = Hamiltonian('Ising', device=device, g=g)
 
-        gt = torch.tensor(g, device=device, dtype=H.dtype, requires_grad=True)
-        sX = torch.tensor([[0, 1.0], [1.0, 0]], dtype=H.dtype, device=device)
-        sZ = torch.tensor([[1.0, 0], [0, -1.0]], dtype=H.dtype, device=device)
-        ham = torch.einsum('xz, wy -> zyxw', sX, sX) + 0.5 * gt * (torch.einsum('xz, wy -> zyxw', sZ, torch.eye(2, dtype=H.dtype, device=device)) + torch.einsum('xz, wy -> zyxw', torch.eye(2, dtype=H.dtype, device=device), sZ))
-        # ham = 0.5 * (ham + ham.permute(1, 0, 3, 2))
-        # ham = ham - H.bias * torch.eye(4, dtype=H.dtype, device=device).reshape(2, 2, 2, 2)
+#         gt = torch.tensor(g, device=device, dtype=H.dtype, requires_grad=True)
+#         sX = torch.tensor([[0, 1.0], [1.0, 0]], dtype=H.dtype, device=device)
+#         sZ = torch.tensor([[1.0, 0], [0, -1.0]], dtype=H.dtype, device=device)
+#         ham = torch.einsum('xz, wy -> zyxw', sX, sX) + 0.5 * gt * (torch.einsum('xz, wy -> zyxw', sZ, torch.eye(2, dtype=H.dtype, device=device)) + torch.einsum('xz, wy -> zyxw', torch.eye(2, dtype=H.dtype, device=device), sZ))
+#         # ham = 0.5 * (ham + ham.permute(1, 0, 3, 2))
+#         # ham = ham - H.bias * torch.eye(4, dtype=H.dtype, device=device).reshape(2, 2, 2, 2)
 
-        rho_0 = net(rho)
-        energy = torch.einsum('abcd, abcd', [rho_0, ham])
+#         rho_0 = net(rho)
+#         energy = torch.einsum('abcd, abcd', [rho_0, ham])
 
-        dE, = torch.autograd.grad(energy, gt, create_graph=True)
-        dE2, = torch.autograd.grad(dE, gt)
-        # H.g.backward()
-        dE_list.append(dE.item())
-        print(g, dE.item())
+#         dE, = torch.autograd.grad(energy, gt, create_graph=True)
+#         dE2, = torch.autograd.grad(dE, gt)
+#         # H.g.backward()
+#         dE_list.append(dE.item())
+#         print(g, dE.item())
 
-    file.create_dataset("dE_list", data=dE_list)
+#     file.create_dataset("dE_list", data=dE_list)

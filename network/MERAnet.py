@@ -5,7 +5,7 @@ from lib import functional as func
 from layer import MERAlayer
 
 class MeraNet(torch.nn.Module):
-    r"""A standard infinite ternary MERA network
+    r"""A standard infinite ternary MERA network.
     Args:
         ham (tensor): two-site Hamiltonian tensor
         chi (int, optional): the max bond dimension (default: 6)

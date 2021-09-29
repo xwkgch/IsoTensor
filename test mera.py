@@ -82,12 +82,12 @@ def compare_method():
     
     ax1.legend(loc='upper right', fontsize=12)
     #ax1.set_yscale('log')
-    ax1.set_xlabel('iterations', fontsize=13)
-    ax1.set_ylabel('energy error', fontsize=13)
+    ax1.set_xlabel('iterations', fontsize=14)
+    ax1.set_ylabel('energy error', fontsize=14)
     ax1.tick_params(labelsize=13)
-    plt.annotate('(a)', xy=(-0.1, 2.7), xycoords='axes fraction', fontsize=13, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
+    plt.annotate('(a)', xy=(-0.1, 2.7), xycoords='axes fraction', fontsize=14, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
 
-    ax2.legend(loc='center right', fontsize=12)
+    # ax2.legend(loc='center right', fontsize=12)
     ax2.plot(np.linspace(0.7, 1.3, 100), np.linspace(0, 0, 100), linestyle='-.', color='grey')
     ax2.plot(np.linspace(0.7, 1.3, 100), np.linspace(0.125, 0.125, 100), linestyle='-.', color='grey')
     ax2.plot(np.linspace(0.7, 1.3, 100), np.linspace(1, 1, 100), linestyle='-.', color='grey')
@@ -98,9 +98,9 @@ def compare_method():
     ax2.set_yticks([0, 0.125, 1])
     ax2.set_xticklabels(method_list)
     ax2.set_yticklabels(['0', '1/8', '1'])
-    ax2.set_ylabel('scaling dimension', fontsize=13)
-    ax2.tick_params(labelsize=13)
-    plt.annotate('(b)', xy=(-0.1, 1.2), xycoords='axes fraction', fontsize=13, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
+    ax2.set_ylabel('scaling dimension', fontsize=14)
+    ax2.tick_params(labelsize=14)
+    plt.annotate('(b)', xy=(-0.1, 1.2), xycoords='axes fraction', fontsize=14, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
 
 
 if __name__ == "__main__":

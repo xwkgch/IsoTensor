@@ -12,6 +12,8 @@ from lib import functional as func
 import h5py
 
 def opt_mix(net):
+    r"""Return a list of optimizations used in random mix method.
+    """
     opt_list = []
     opt_list.append(optim.ev.EV(net.parameters(), lr=0.6))
     opt_list.append(optim.sgd.SGD(net.parameters(), lr=0.6, momentum=0.9, nesterov=False, method='SVD'))
@@ -19,6 +21,9 @@ def opt_mix(net):
     return opt_list
 
 def construct_TNR(beta=None, chi=8, totlv=8, epoch=400):
+    r"""An example about construction a TNR coarse-graining and optimization networks with random mix method.
+    Autograd values are computed. (problematic)
+    """
     torch.set_default_dtype(torch.float64)
     device = torch.device('cuda:0')
     totlv = totlv
@@ -77,6 +82,8 @@ def b_list(d1, d2, d3, n1, n2, n3):
     return np.concatenate((b_l2,b_l1,b_c,b_r1,b_r2))
 
 def beta_function():
+    r"""Compute the lnZ by TNR networks and internal energy by finite-differentiation as a function of beta.
+    """
     beta_list = b_list(0.001,0.002,0.003,10,8,6)
     print(beta_list)
     file=h5py.File('.\\data\\TNR beta_function.hdf5',"w")
@@ -101,6 +108,7 @@ def beta_function():
     file.create_dataset("E_exact", data=E_exact)
 
 def sc_calc():
+    r"""Compute the scaling dimensions for TNR."""
     file=h5py.File('.\\data\\TNR sc_calc.hdf5',"w")
     chi = 14
     totlv = 10
@@ -116,6 +124,8 @@ def sc_calc():
     file.create_dataset("sc", data=sc)
 
 def compare_method():
+    r"""Comparing the performance for different optimization methods.
+    """
     file=h5py.File('.\\data\\TNR compare_method.hdf5',"w")
     chi = 14
     totlv = 8

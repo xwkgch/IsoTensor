@@ -5,6 +5,8 @@ from lib import functional as func
 from layer import TNRlayer
 
 class TNRNet(torch.nn.Module):
+    r"""A standard TNR coarse-graining network.
+    """
     def __init__(self, chi_HV, chi_list=(8,8,8,8), dtype=torch.double, totlv=8):
         super().__init__()
         self.chi_list = chi_list
@@ -29,6 +31,8 @@ class TNRNet(torch.nn.Module):
         return x
 
     def sum_lnZ(self, A_top):
+        r"""Compute the lnZ at the top layer.
+        """
         lnZ = torch.log(torch.einsum('abab', A_top))
         i = 0
         for lay in reversed(self.net):

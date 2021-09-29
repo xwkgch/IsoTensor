@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import lib.functional as func
 
 class SimpleLayer(torch.nn.Module):
-    r"""Basic layer for MERA.
+    r"""Basic layer for infinite MERA.
     Args:
         chi_in (int): dimension of in (bottom) bond
         chi_out (int): dimension of out (upper) bond

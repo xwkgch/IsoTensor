@@ -7,6 +7,8 @@ import lib.functional as func
 
 
 class LayerGen(torch.nn.Module):
+    r"""Generating layer for 2D classical Ising model on square lattice.
+    """
     def __init__(self) -> None:
         super().__init__()
     
@@ -14,6 +16,8 @@ class LayerGen(torch.nn.Module):
         return func.class_Ising(beta)
 
 class LayerDiv(torch.nn.Module):
+    r"""Dividing layer for tensor A.
+    """
     def __init__(self) -> None:
         super().__init__()
 
@@ -23,7 +27,7 @@ class LayerDiv(torch.nn.Module):
 
 
 class LayerTNR(torch.nn.Module):
-    r"""
+    r"""Coarse-graining layer for TNR.
     """
     def __init__(self, chi_HV, chi_list, dtype, u=None, vL=None, vR=None):
         super().__init__()
@@ -61,7 +65,7 @@ class LayerTNR(torch.nn.Module):
         self.u, self.vL, self.vR = params
         
 class LayerTNROpt(torch.nn.Module):
-    r"""layer for TNR optimization.
+    r"""Optimization layer for TNR.
     """
     def __init__(self, chi_HV, chi_list, dtype):
         super().__init__()
