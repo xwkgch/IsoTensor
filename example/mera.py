@@ -17,8 +17,9 @@ def opt_mix(net):
     opt_list = []
     opt_list.append(optim.ev.EV(net.parameters(), lr=lr0))
     opt_list.append(optim.sgd.SGD(net.parameters(), lr=lr0, momentum=0.9, nesterov=False, method='SVD'))
-    opt_list.append(optim.sgd.SGD(net.parameters(), lr=lr0, momentum=0.9, nesterov=False, method='Cayley'))
-    # opt_list.append(optim.adam.Adam(net.parameters(), lr=lr0, betas=(0.9,0.999), amsgrad=True, method='SVD'))
+    # opt_list.append(optim.sgd.SGD(net.parameters(), lr=lr0, momentum=0.9, nesterov=False, method='Cayley'))
+    opt_list.append(optim.adam.Adam(net.parameters(), lr=lr0, betas=(0.9,0.993), amsgrad=True, method='SVD'))
+    opt_list.append(optim.rmsprop.RMSprop(net.parameters(), lr=lr0, momentum=0.9, centered=True, method='SVD'))
     return opt_list
 
 def construct_MERA(model='Ising', chi_list=[4, 6, 7, 8], epoch_list=[300, 700, 1000, 2000], g=1.0):
@@ -26,8 +27,10 @@ def construct_MERA(model='Ising', chi_list=[4, 6, 7, 8], epoch_list=[300, 700, 1
     Resetting mechanism is used for Ising model.
     """
     device = torch.device('cuda:0')
-    chi_list = [4, 6, 7, 8, 9, 10]
-    epoch_list = [300, 700, 1000, 2000, 3000, 4000]
+    chi_list = [4, 6, 7, 8, 9, 10, 12]
+    epoch_list = [200, 500, 1000, 2000, 3000, 4000, 4300]
+    # chi_list = [8, 9, 10]
+    # epoch_list = [2000, 3000, 4000]
     H = Hamiltonian(model, device, g=g)
     net = MeraNet(H.ham, chi=chi_list[0], totlv=3).to(device)
     opt_list = opt_mix(net)
@@ -37,6 +40,7 @@ def construct_MERA(model='Ising', chi_list=[4, 6, 7, 8], epoch_list=[300, 700, 1
     monitor = MERAMonitor(H, net)
     rho = func.rho_init(net.chi[-1], H.dtype).to(device)
 
+    error_list = []
     step = res_count = 0
     while step < len(epoch_list):
         chi = chi_list[step]
@@ -53,7 +57,7 @@ def construct_MERA(model='Ising', chi_list=[4, 6, 7, 8], epoch_list=[300, 700, 1
             with torch.no_grad():
                 rho = func.topdense(rho, list(net.parameters())[-1], list(net.parameters())[-2], func.des_ternary, sciter=4)
             
-            monitor.display(loss, opt)
+            monitor.display(loss, opt, container=error_list)
             opt = selector.select()
 
         step += 1
@@ -70,6 +74,14 @@ def construct_MERA(model='Ising', chi_list=[4, 6, 7, 8], epoch_list=[300, 700, 1
             print('\n|-------------------> Restart: %d <--------------------|' % res_count, end='\n')
 
     monitor.end()
+
+    sc = func.mera_sc(list(net.parameters())[-1])
+
+    file=h5py.File('.\\data\\MERA simple.hdf5',"w")
+    file.create_dataset("model", data=np.array([model], dtype=object), dtype=h5py.special_dtype(vlen=str))
+    file.create_dataset("epoch", data=epoch_list)
+    file.create_dataset("error_list", data=error_list)
+    file.create_dataset("sc", data=sc)
 
     return net, rho
 
@@ -151,7 +163,7 @@ def compare_method(model='Ising'):
     file=h5py.File('.\\data\\MERA compare_method.hdf5',"w")
     file.create_dataset("model", data=np.array([model], dtype=object), dtype=h5py.special_dtype(vlen=str))
     file.create_dataset("method", data=np.array(method_list, dtype=object), dtype=h5py.special_dtype(vlen=str))
-    file.create_dataset("setting", data=[3, 1])
+    file.create_dataset("setting", data=[totlv, repeat])
     file.create_dataset("epoch", data=epoch_list)
     file.create_dataset("error_list", data=error_list)
     file.create_dataset("res_count", data=res_count)

@@ -15,6 +15,7 @@ class EV(Optimizer):
             raise ValueError("Invalid learning rate: {}".format(lr))
 
         self.label = 'Evenbly-Vidal           '
+        self.pad_item = []
         defaults = dict(lr=lr, weight_decay=weight_decay)
         super(EV, self).__init__(params, defaults)
 

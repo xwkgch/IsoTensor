@@ -26,6 +26,7 @@ class SGD(Optimizer):
             raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
 
         self.label = 'SGD with ' + method + '       '
+        self.pad_item = ['momentum_buffer']
         defaults = dict(lr=lr, momentum=momentum, dampening=dampening, weight_decay=weight_decay, nesterov=nesterov, method=method)
         if nesterov and (momentum <= 0 or dampening != 0):
             raise ValueError("Nesterov momentum requires a momentum and zero dampening")

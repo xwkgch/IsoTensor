@@ -6,6 +6,17 @@ from model.hamiltonian import Hamiltonian
 import numpy as np
 import h5py
 
+def simple():
+    file = h5py.File(".\\data\\MERA simple.hdf5", "r")
+    epoch_list = file[("epoch")]
+    error_list = file[("error_list")].value
+    sc = file[("sc")].value
+
+    fig = plt.figure('MERA')
+    ax = fig.add_subplot(1, 1, 1)
+    ax.loglog(range(0, sum(epoch_list), 5), error_list)
+    print(sc)
+
 def g_function_test():
     file = h5py.File(".\\data\\MERA g_function.hdf5", "r")
     g = file[("g")].value
@@ -104,8 +115,9 @@ def compare_method():
 
 
 if __name__ == "__main__":
+    simple()
     # g_function_test()
     # g_function()
-    compare_method()
+    # compare_method()
 
     plt.show()

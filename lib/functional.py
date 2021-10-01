@@ -62,7 +62,23 @@ def rho_init(chi, dtype=torch.double, rho=None, type='two'):
         assert d_in >= 0
         return F.pad(rho, (0, d_in)*4)
 
-
+def pad(tensor, dims_new):
+    r"""Expand the dimensions of the tensor and padding 0 on the new area.
+    Args:
+        tensor (torch.Tensor): tensor to be padded.
+        dims_new: dimensions of the padded tensor.
+    """
+    dims = np.array(tensor.size())
+    dims_new = np.array(dims_new)
+    assert len(dims) == len(dims_new)
+    d = dims_new - dims
+    d = d[::-1]
+    pad_list = []
+    for i in range(len(d)):
+        pad_list.append(0)
+        pad_list.append(d[i])
+    
+    return F.pad(tensor, tuple(pad_list))
 #-------------------------------------------------------------------------
 def class_Ising(beta):
     r"""Generate the 2D classical Ising tensor network on square lattice with inverse temperature beta.

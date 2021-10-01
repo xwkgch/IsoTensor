@@ -3,7 +3,7 @@ from torch.optim import Optimizer
 from . import functional as func
 
 class Adam(Optimizer):
-    r"""Implements Adam algorithm .
+    r"""Implements Adam algorithm with isometric constraints.
     Args:
         params (iterable): iterable of parameters to optimize or dicts defining
             parameter groups
@@ -33,6 +33,7 @@ class Adam(Optimizer):
             raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
 
         self.label = 'Adam with ' + method + '       '
+        self.pad_item = ['exp_avg', 'exp_avg_sq']
         defaults = dict(lr=lr, betas=betas, eps=eps,
                         weight_decay=weight_decay, amsgrad=amsgrad, method=method)
         super(Adam, self).__init__(params, defaults)
@@ -64,7 +65,6 @@ class Adam(Optimizer):
             max_exp_avg_sqs = []
             state_steps = []
             beta1, beta2 = group['betas']
-            v_srm = []
 
             for p in group['params']:
                 if p.grad is not None:
@@ -75,35 +75,34 @@ class Adam(Optimizer):
 
                     state = self.state[p]
                     # Lazy state initialization
-                    if len(state) == 0:
+                    if not 'step' in state.keys():
                         state['step'] = self._step_count - 1
+                    if not 'exp_avg' in state.keys():
                         # Exponential moving average of gradient values
                         state['exp_avg'] = torch.zeros_like(p, memory_format=torch.preserve_format)
+                    if not 'exp_avg_sq' in state.keys():
                         # Exponential moving average of squared gradient values
                         state['exp_avg_sq'] = torch.zeros_like(p, memory_format=torch.preserve_format)
-                        state['v_srm'] = torch.tensor(1.0, dtype=p.dtype, device=p.device)
-                        if group['amsgrad']:
-                            # Maintains max of all exp. moving avg. of sq. grad. values
+                    if group['amsgrad']:
+                        # Maintains max of all exp. moving avg. of sq. grad. values
+                        if not 'max_exp_avg_sq' in self.pad_item:
+                            self.pad_item.append('max_exp_avg_sq')
+                        if not 'max_exp_avg_sq' in state.keys():
                             state['max_exp_avg_sq'] = torch.zeros_like(p, memory_format=torch.preserve_format)
+                        max_exp_avg_sqs.append(state['max_exp_avg_sq'])
 
                     exp_avgs.append(state['exp_avg'])
                     exp_avg_sqs.append(state['exp_avg_sq'])
-                    v_srm.append(state['v_srm'])
-
-                    if group['amsgrad']:
-                        max_exp_avg_sqs.append(state['max_exp_avg_sq'])
 
                     # update the steps for each param group update
                     state['step'] += 1
                     # record the step after step update
                     state_steps.append(state['step'])
 
-            
             func.iso_adam(params_with_grad,
                    grads,
                    exp_avgs,
                    exp_avg_sqs,
-                   v_srm,
                    max_exp_avg_sqs,
                    state_steps,
                    group['amsgrad'],
@@ -114,9 +113,8 @@ class Adam(Optimizer):
                    group['eps'],
                    group['method'])
 
-            for p, buffer, v in zip(params_with_grad, exp_avgs, v_srm):
+            for p, exp_avg in zip(params_with_grad, exp_avgs):
                 state = self.state[p]
-                state['exp_avg'] = buffer
-                state['v_rsm'] = v
+                state['exp_avg'] = exp_avg
             
         return loss

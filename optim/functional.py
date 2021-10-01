@@ -116,7 +116,6 @@ def iso_adam(params: List[Tensor],
          grads: List[Tensor],
          exp_avgs: List[Tensor],
          exp_avg_sqs: List[Tensor],
-         v_rsm:List[Tensor],
          max_exp_avg_sqs: List[Tensor],
          state_steps: List[int],
          amsgrad: bool,
@@ -129,6 +128,7 @@ def iso_adam(params: List[Tensor],
     r"""Functional API that performs Adam algorithm computation.
 
     """
+    keep_dir = True
 
     for i, param in enumerate(params):
 
@@ -136,7 +136,6 @@ def iso_adam(params: List[Tensor],
         exp_avg = exp_avgs[i]
         exp_avg_sq = exp_avg_sqs[i]
         step = state_steps[i]
-        v = v_rsm[i]
 
         bias_correction1 = 1 - beta1 ** step
         bias_correction2 = 1 - beta2 ** step
@@ -159,7 +158,6 @@ def iso_adam(params: List[Tensor],
 
         #param.addcdiv_(exp_avg, denom, value=-step_size)
 
-        # d_p = torch.div(exp_avg, denom)
         d_p = exp_avg
 
         dims = param.size()
@@ -169,14 +167,79 @@ def iso_adam(params: List[Tensor],
         X = param.data.view(dim1, dim2)
         dX = d_p.data.view(dim1, dim2)
 
-        v = beta2 * v + (1 - beta2) * torch.var(dX)
-        r = bias_correction1 * torch.sqrt(v + eps) / bias_correction2
-
         G, A = grad_proj(X, dX)
         exp_avgs[i] = torch.clone(G.view(dims)).detach()
-        # G2 = torch.div(G, denom.view(dim1, dim2))
-        G2 = G / r * 20
+        
+        r = torch.linalg.norm(denom)
+        if keep_dir:
+            G = G / r * 20
+        else:
+            G = torch.div(G, denom.view(dim1, dim2)) 
+            G, A = grad_proj(X, G)
 
-        X_out = retraction(X, G2, A / r, step_size, method=method, adapt=False)
+        X_out = retraction(X, G, A / r, step_size, method=method, adapt=False)
+        param.data.fill_(0)
+        param.data += X_out.view(dims).to(param.device)
+
+def rmsprop(params: List[Tensor],
+            grads: List[Tensor],
+            square_avgs: List[Tensor],
+            grad_avgs: List[Tensor],
+            momentum_buffer_list: List[Tensor],
+            lr: float,
+            alpha: float,
+            eps: float,
+            weight_decay: float,
+            momentum: float,
+            centered: bool,
+            method:str):
+    r"""Functional API that performs rmsprop algorithm computation.
+    """
+    keep_dir = True
+
+    for i, param in enumerate(params):
+        grad = grads[i]
+        square_avg = square_avgs[i]
+        buf = momentum_buffer_list[i]
+
+        if weight_decay != 0:
+            grad = grad.add(param, alpha=weight_decay)
+
+        square_avg.mul_(alpha).addcmul_(grad, grad, value=1 - alpha)
+
+        if centered:
+            grad_avg = grad_avgs[i]
+            grad_avg.mul_(alpha).add_(grad, alpha=1 - alpha)
+            avg = square_avg.addcmul(grad_avg, grad_avg, value=-0.5).sqrt_().add_(eps)
+        else:
+            avg = square_avg.sqrt().add_(eps)
+
+        # buf.mul_(momentum).addcdiv_(grad, avg)
+        # param.add_(buf, alpha=-lr)
+
+
+        r = torch.linalg.norm(avg)
+        if keep_dir:
+            buf = momentum * buf + grad / r 
+        else: 
+            buf = momentum * buf + grad
+
+        d_p = buf
+
+        dims = param.size()
+        bond_in, _ = param.leg_type
+        dim1 = np.prod(dims[:bond_in])
+        dim2 = np.prod(dims[bond_in:])
+        X = param.data.view(dim1, dim2)
+        dX = d_p.data.view(dim1, dim2)
+
+        G, A = grad_proj(X, dX)
+        momentum_buffer_list[i] = torch.clone(G.view(dims)).detach()
+
+        if not keep_dir:
+            G = torch.div(G, avg.view(dim1, dim2)) / 4
+            G, A = grad_proj(X, G)
+
+        X_out = retraction(X, G, A / r, lr, method=method, adapt=False)
         param.data.fill_(0)
         param.data += X_out.view(dims).to(param.device)

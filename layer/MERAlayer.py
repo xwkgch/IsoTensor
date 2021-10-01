@@ -56,13 +56,18 @@ class SimpleTernary(SimpleLayer):
         r"""expand the bond dimension of parameters and padding 0 on the new area
         """
         assert chi_in_new >= self.chi_in and chi_out_new >= self.chi_out
-
-        d_in = chi_in_new - self.chi_in
-        d_out = chi_out_new - self.chi_out
+        
+        self.u = Parameter(func.pad(self.u, (chi_in_new,)*4))
         bond_in, bond_out = self.w.leg_type
-        self.u = Parameter(F.pad(self.u, (0, d_in)*4))
+        self.w = Parameter(func.pad(self.w, (chi_in_new,)*bond_in + (chi_out_new,)*bond_out))
         self.u.leg_type = (2, 2)
-        self.w = Parameter(F.pad(self.w, (0, d_out)*bond_out + (0, d_in)*bond_in))
         self.w.leg_type = (bond_in, bond_out)
+        # d_in = chi_in_new - self.chi_in
+        # d_out = chi_out_new - self.chi_out
+        # bond_in, bond_out = self.w.leg_type
+        # self.u = Parameter(F.pad(self.u, (0, d_in)*4))
+        # self.u.leg_type = (2, 2)
+        # self.w = Parameter(F.pad(self.w, (0, d_out)*bond_out + (0, d_in)*bond_in))
+        # self.w.leg_type = (bond_in, bond_out)
 
         self.chi_in, self.chi_out = chi_in_new, chi_out_new

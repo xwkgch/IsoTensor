@@ -40,6 +40,9 @@ class MeraNet(torch.nn.Module):
         """
         print('')
         assert chi_new >= self.chi[-1]
+
+        param_groups_old = list(self.parameters())
+
         for i in range(self.totlv):
             self.chi[i + 1] = min(chi_new, self.chi[i]** 3)
             self.net[i].padding(self.chi[i], self.chi[i+1])
@@ -49,4 +52,9 @@ class MeraNet(torch.nn.Module):
             param_groups = list(self.parameters())
             for i, param in enumerate(param_groups):
                 opt.param_groups[0]['params'][i] = param
+                p_old = param_groups_old[i]
+                for item in opt.pad_item:
+                    opt.state[param][item] = func.pad(opt.state[p_old][item], param.size())
         return func.rho_init(chi_new, rho=rho)
+
+    
