@@ -23,17 +23,17 @@ The code requires `Python` and `PyTorch`, with optional CUDA support.
 
 ## Computation process of TNR
 <p align="center">
-  <img src="docs/TNRgraph.png" width="800">
+  <img src="docs/TNRgraph.png" width="850">
 </p>
 
 ## Comparing methods
 <p align="center">
-  <img src="docs/MERAlossIsing.png" width="500">
+  <img src="docs/MERAlossIsing.png" width="400">
 </p>
 The comparison of Evenbly-Vidal method and random mixed method in MERA. Cusps here indicate the position of lifting bond dimensions.
 
 ## Scaling dimensions
 <p align="center">
-  <img src="docs/TNRsc.png" width="500">
+  <img src="docs/TNRsc.png" width="450">
 </p>
 The scaling dimensions extracted from TNR. 
