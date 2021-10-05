@@ -18,8 +18,8 @@ def opt_mix(net):
     opt_list.append(optim.ev.EV(net.parameters(), lr=lr0))
     opt_list.append(optim.sgd.SGD(net.parameters(), lr=lr0, momentum=0.9, nesterov=False, method='SVD'))
     # opt_list.append(optim.sgd.SGD(net.parameters(), lr=lr0, momentum=0.9, nesterov=False, method='Cayley'))
-    opt_list.append(optim.adam.Adam(net.parameters(), lr=lr0, betas=(0.9,0.993), amsgrad=True, method='SVD'))
-    opt_list.append(optim.rmsprop.RMSprop(net.parameters(), lr=lr0, momentum=0.9, centered=True, method='SVD'))
+    # opt_list.append(optim.adam.Adam(net.parameters(), lr=lr0, betas=(0.9,0.993), amsgrad=True, method='SVD'))
+    # opt_list.append(optim.rmsprop.RMSprop(net.parameters(), lr=lr0, momentum=0.9, centered=True, method='SVD'))
     return opt_list
 
 def construct_MERA(model='Ising', chi_list=[4, 6, 7, 8], epoch_list=[300, 700, 1000, 2000], g=1.0):
