@@ -1,10 +1,11 @@
 # Isometric Tensor Network
-This project is used for the paper "Differentiable Programming of Isometric Tensor Network". (coming soon)
+This project is used for the paper "Differentiable Programming of Isometric Tensor Network". ([arXiv:2110.03898](https://arxiv.org/abs/2110.03898))
 ## Main features:
 * Auto-gradient based isometric tensor network construction (MERA and TNR).
 * Several built-in spin models
 * Multiple optimizers and retraction methods
 * Compatible with the graduate lifting bond dimension trick
+* Dynamical switching optimizers
 * Computing scaling dimensions
 ## In future:
 * More models, optimizers and retraction methods
