@@ -5,7 +5,7 @@ This project is used for the paper "Differentiable Programming of Isometric Tens
 * Several built-in spin models
 * Multiple optimizers and retraction methods
 * Compatible with the graduate lifting bond dimension trick
-* Dynamical switching optimizers
+* Dynamically switching optimizers
 * Computing scaling dimensions
 ## In future:
 * More models, optimizers and retraction methods
