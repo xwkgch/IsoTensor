@@ -33,9 +33,11 @@ def beta_function():
         C_manual.append((d_l * C_left + d_r * C_right) / (d_l+d_r))
 
     fig = plt.figure('TNR')
-    fig.subplots_adjust(wspace=0.8,hspace=0.5)
+    fig2 = plt.figure('TNR2')
+    fig3 = plt.figure('TNR3')
+    fig.subplots_adjust(wspace=0.2,hspace=0.5)
 
-    ax1 = fig.add_subplot(2, 1, 1)
+    ax1 = fig.add_subplot(1, 1, 1)
     ax1.plot(beta_list, lnZ_exact, label='exact', color='royalblue', alpha=0.8)
     ax1.scatter(beta_list, lnZ_list, marker='+', s=80, label='computed', color='coral', alpha=0.8)
     ax1.set_xlabel(r'$\beta$', fontsize=14)
@@ -44,8 +46,7 @@ def beta_function():
     plt.annotate('(a)', xy=(-0.1, 1.1), xycoords='axes fraction', fontsize=14, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
     ax1.legend(loc='center right', fontsize=13)
 
-    
-    ax2 = fig.add_subplot(2, 1, 2)
+    ax2 = fig2.add_subplot(1, 1, 1)
     ax2.plot(beta_list, E_exact, label='exact', color='royalblue', alpha=0.8)
     # ax2.scatter(beta_list, E_list, marker='+', s=80, label='auto differentiation', color='coral', alpha=0.7)
     ax2.scatter(beta_list[1:-1:], E_manual, marker='x', s=40, label='finite-difference', color='coral', alpha=0.7)
@@ -54,12 +55,20 @@ def beta_function():
     ax2.tick_params(labelsize=14)
     plt.axvline(x=beta_list[(len(beta_list)-1)/2], c='gray', ls='--',lw=1)
     plt.annotate('(b)', xy=(-0.1, 1.1), xycoords='axes fraction', fontsize=13, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
-    plt.annotate(r'$\beta_c$', xy=(0.55, 1.0), xycoords='axes fraction', fontsize=13, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
-    ax2.legend(loc='upper right', fontsize=13)
+    plt.annotate(r'$\beta_c$', xy=(0.58, 0.08), xycoords='axes fraction', fontsize=13, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
+    ax2.legend(loc='center right', fontsize=13)
 
-    fig2 = plt.figure('TNR2')
-    ax3 = fig2.add_subplot(1, 1, 1)
-    ax3.scatter(beta_list[2:-3:], C_manual, label='diff')
+    ax3 = fig3.add_subplot(1, 1, 1)
+    ax3.scatter(beta_list, abs((lnZ_list.value-lnZ_exact.value)/lnZ_exact.value), marker='x', s=50, label=r'$\ln{Z}$', color='royalblue', alpha=0.8)
+    ax3.scatter(beta_list[1:-1:], abs((E_manual-E_exact.value[1:-1:])/E_exact.value[1:-1:]), marker='x', s=50, label='internal energy', color='crimson', alpha=0.8)
+    ax3.set_yscale('log')
+    ax3.set_xlabel(r'$\beta$', fontsize=14)
+    ax3.set_ylabel(r'relative errors', fontsize=14)
+    ax3.tick_params(labelsize=14)
+    ax3.legend(loc='lower right', fontsize=13)
+    
+    # ax3 = fig2.add_subplot(1, 1, 1)
+    # ax3.scatter(beta_list[2:-3:], C_manual, label='diff')
 
 
 def sc_calc():
@@ -92,6 +101,7 @@ def sc_calc():
     ax_sc.tick_params(labelsize=13)
         
     ax_sc.legend(loc='center right', fontsize=12)
+    print(sc3[:])
 
 def compare_method():
     file1 = h5py.File(".\\data\\TNR compare_method 1.hdf5", "r")
@@ -105,7 +115,7 @@ def compare_method():
     epoch = setting1[2]
 
     fig = plt.figure('loss')
-    ax1 = fig.add_subplot(2, 1, 1)
+    ax1 = fig.add_subplot(1, 1, 1)
 
     label = method1[0]
     for i in range(2,totlv,2):
@@ -117,8 +127,8 @@ def compare_method():
         label=None
 
     ax1.tick_params(labelsize=13)
-    ax1.set_xlabel('iterations', fontsize=14)
-    ax1.set_ylabel('approximation errors', fontsize=14)
+    ax1.set_xlabel('Iterations', fontsize=14)
+    ax1.set_ylabel('Approximation errors', fontsize=14)
     ax1.legend(loc='upper right', fontsize=13)
 
     

@@ -7,7 +7,9 @@ from numpy import linalg as LA
 from scipy.sparse.linalg import LinearOperator
 from scipy.sparse.linalg import eigs
 from .svd import SVD
+from .eigh import EigenSolver
 svd_ = SVD.apply
+eigh_ = EigenSolver.apply
 
 def normal(tensor, type):
     r"""renormalize a random tensor to be (semi-) unitary
@@ -148,7 +150,8 @@ def eig_opt(C, chi_HV, chi_list):
         w
     """
     chiHI, chiVI, chiU, chiV, chiAH, chiAV = get_chi(chi_HV, chi_list)
-    _, w_tmp = torch.linalg.eigh(ncon([C, torch.conj(C)], [[1, -1, -2, 2, 3, 4], [1, -3, -4, 2, 3, 4]]).reshape(chiU ** 2, chiU ** 2))
+    # _, w_tmp = torch.linalg.eigh(ncon([C, torch.conj(C)], [[1, -1, -2, 2, 3, 4], [1, -3, -4, 2, 3, 4]]).reshape(chiU ** 2, chiU ** 2))
+    _, w_tmp = eigh_(ncon([C, torch.conj(C)], [[1, -1, -2, 2, 3, 4], [1, -3, -4, 2, 3, 4]]).reshape(chiU ** 2, chiU ** 2))
     w = w_tmp.reshape(chiU, chiU, w_tmp.shape[1])[:,:, range(-1, -chiAV - 1, -1)]
      
     return w
@@ -165,21 +168,28 @@ def contract_B(A, u, vL, vR, mode='parallel'):
         B = ncon([A,A,torch.conj(A),torch.conj(A),u,torch.conj(u),vR,vL,torch.conj(vR),torch.conj(vL)],[[5,1,13,6],[15,2,13,7],[12,8,16,6],[14,9,16,7],[1,2,3,4],[8,9,10,11],[15,4,-3],[5,3,-1],[14,11,-4],[12,10,-2]],[15,2,4,5,14,9,11,8,16,12,10,1,13,3,6,7])
     return B
 
-def contract_A_exact(A, mode='parallel', type='8'):
+def contract_A_exact(A, mode='parallel', type='4'):
     r"""Compute the the exact tensor contraction of sub-graph with A.
     mode = 'parallel' for A with parallel arrangement and 'mirror' for A with mirror arrangement.
     """
-    tensors = [A,A,torch.conj(A),torch.conj(A),A,A,torch.conj(A),torch.conj(A)]
-    if mode == 'parallel':
-        connects = [[13,15,3,1],[3,16,14,2],[11,9,4,1],[4,10,12,2],[13,15,7,5],[7,16,14,6],[11,9,8,5],[8,10,12,6]]
-        con_order = [10,12,11,9,16,14,2,6,4,8,7,5,13,15,3,1]
-    elif mode == 'mirror':
-        connects = [[8,9,13,1],[11,12,13,2],[7,5,14,1],[10,6,14,2],[8,9,16,3],[11,12,16,4],[7,5,15,3],[10,6,15,4]]
-        con_order = [11,12,10,6,2,4,7,5,14,15,16,3,8,9,13,1]
+    if type == '4':
+        tensors = [A,A,torch.conj(A),torch.conj(A),A,A,torch.conj(A),torch.conj(A)]
+        if mode == 'parallel':
+            connects = [[13,15,3,1],[3,16,14,2],[11,9,4,1],[4,10,12,2],[13,15,7,5],[7,16,14,6],[11,9,8,5],[8,10,12,6]]
+            con_order = [10,12,11,9,16,14,2,6,4,8,7,5,13,15,3,1]
+        elif mode == 'mirror':
+            connects = [[8,9,13,1],[11,12,13,2],[7,5,14,1],[10,6,14,2],[8,9,16,3],[11,12,16,4],[7,5,15,3],[10,6,15,4]]
+            con_order = [11,12,10,6,2,4,7,5,14,15,16,3,8,9,13,1]
+
+    if type == '16':
+        tensors = [A,A,torch.conj(A),torch.conj(A),A,A,torch.conj(A),torch.conj(A),A,A,torch.conj(A),torch.conj(A),A,A,torch.conj(A),torch.conj(A),A,A,torch.conj(A),torch.conj(A),A,A,torch.conj(A),torch.conj(A),A,A,torch.conj(A),torch.conj(A),A,A,torch.conj(A),torch.conj(A)]
+        connects = [[59,61,1,2],[1,62,41,3],[57,4,5,2],[5,6,42,3],[53,47,7,8],[7,48,44,9],[55,4,10,8],[10,6,43,9],[41,63,11,12],[11,64,60,13],[42,14,15,12],[15,16,58,13],[44,49,17,18],[17,50,54,19],[43,14,20,18],[20,16,56,19],[53,47,21,22],[21,48,45,23],[55,24,25,22],[25,26,46,23],[59,61,27,28],[27,62,52,29],[57,24,30,28],[30,26,51,29],[45,49,31,32],[31,50,54,33],[46,34,35,32],[35,36,56,33],[52,63,37,38],[37,64,60,39],[51,34,40,38],[40,36,58,39]]
+        con_order = [53,47,59,61,50,54,64,60,1,27,62,5,7,21,48,10,11,63,37,15,17,49,31,20,25,30,35,40,2,3,28,29,57,8,9,22,23,55,12,13,39,38,58,41,52,42,51,18,19,33,32,56,14,16,34,36,4,6,24,26,44,45,43,46]
+    
 
     return ncon(tensors,connects,con_order)
 
-def contract_A_new(A, u, vL, vR, mode='parallel', type='8'):
+def contract_A_new(A, u, vL, vR, mode='parallel'):
     r"""Compute the the approximate tensor contraction of sub-graph with A.
     mode = 'parallel' for A with parallel arrangement and 'mirror' for A with mirror arrangement.
     """

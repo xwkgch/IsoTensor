@@ -1,4 +1,5 @@
 from torch._C import device, dtype
+from numpy.lib.function_base import select
 import torch
 import math
 import matplotlib.pyplot as plt
@@ -6,44 +7,23 @@ from model.hamiltonian import Hamiltonian
 import numpy as np
 import h5py
 
-def simple():
-    file = h5py.File(".\\data\\MERA simple.hdf5", "r")
+def single_repeat():
+    file = h5py.File(".\\data\\MERA single\\EVnonlift.hdf5", "r")
+    setting = file[("setting")]
     epoch_list = file[("epoch")]
     error_list = file[("error_list")].value
-    sc = file[("sc")].value
+
+    repeat = int(setting[1])
 
     fig = plt.figure('MERA')
     ax = fig.add_subplot(1, 1, 1)
-    ax.loglog(range(0, sum(epoch_list), 5), error_list)
-    print(sc)
 
-def g_function_test():
-    file = h5py.File(".\\data\\MERA g_function.hdf5", "r")
-    g = file[("g")].value
-    rho = file[("rho")]
-    net = torch.load('.\\data\\MERA g_function.pt')
+    for i in range(repeat):
+        ax.loglog(range(0, sum(epoch_list), 5), error_list[i])
 
-    device = torch.device('cpu')
-    net.to(device)
-    dtype = net.ham.dtype
-    H = Hamiltonian('Ising', device=device, g=g)
-    H.Ising(g=g, requires_grad=True)
-    rho = torch.tensor(rho, dtype=dtype, device=device, requires_grad=False)
-    rho_0 = net(rho)
-    energy = torch.einsum('abcd, abcd', [rho_0, H.ham])
-
-    dE, = torch.autograd.grad(energy, H.g, create_graph=True)
-    dE2, = torch.autograd.grad(dE, H.g)
-    print(dE,dE2)
-
-def g_function():
-    file = h5py.File(".\\data\\MERA g_function 2.hdf5", "r")
-    g_list = np.linspace(0.99, 1.01, 21)
-    dE_list = file[("dE_list")]
-
-    fig = plt.figure('MERA')
-    ax = fig.add_subplot(1, 1, 1)
-    ax.plot(g_list, dE_list, label='dE', marker='x', color='royalblue', alpha=0.8)
+    print(file[("sc_list")].value)
+    print(file[("time_list")].value)
+    print(file[("res_list")].value)
 
 def compare_method():
     file = h5py.File(".\\data\\MERA compare_method 2.hdf5", "r")
@@ -70,7 +50,7 @@ def compare_method():
     plot_list = [[0] * repeat for i in range(len(method_list))]
     scatter_list = [[0] * repeat for i in range(len(method_list))]
     fig1 = plt.figure('MERA')
-    fig1.subplots_adjust(wspace=0.8,hspace=0.5)
+    fig1.subplots_adjust(wspace=0.5,hspace=0.5)
 
     ax1 = fig1.add_subplot(2, 1, 1)
     ax2 = fig1.add_subplot(2, 1, 2)
@@ -93,11 +73,11 @@ def compare_method():
     
     ax1.legend(loc='upper right', fontsize=12)
     #ax1.set_yscale('log')
-    ax1.set_xlabel('iterations', fontsize=14)
-    ax1.set_ylabel('energy error', fontsize=14)
+    ax1.set_xlabel('Iterations', fontsize=14)
+    ax1.set_ylabel('Energy error', fontsize=14)
     ax1.tick_params(labelsize=13)
     plt.annotate('(a)', xy=(-0.1, 2.7), xycoords='axes fraction', fontsize=14, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
-
+    # plt.annotate('(a)', xy=(-1.7, 1.1), xycoords='axes fraction', fontsize=14, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
     # ax2.legend(loc='center right', fontsize=12)
     ax2.plot(np.linspace(0.7, 1.3, 100), np.linspace(0, 0, 100), linestyle='-.', color='grey')
     ax2.plot(np.linspace(0.7, 1.3, 100), np.linspace(0.125, 0.125, 100), linestyle='-.', color='grey')
@@ -107,17 +87,95 @@ def compare_method():
     ax2.set_ylim([-0.05, 1.2])
     ax2.set_xticks(np.linspace(0.8, 0.8 + 0.1 * 3, len(method_list)))
     ax2.set_yticks([0, 0.125, 1])
-    ax2.set_xticklabels(method_list)
+    ax2.set_xticklabels(method_list,rotation=-15)
     ax2.set_yticklabels(['0', '1/8', '1'])
-    ax2.set_ylabel('scaling dimension', fontsize=14)
+    ax2.set_ylabel('Scaling dimension', fontsize=14)
     ax2.tick_params(labelsize=14)
     plt.annotate('(b)', xy=(-0.1, 1.2), xycoords='axes fraction', fontsize=14, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
+    # plt.annotate('(b)', xy=(-0.1, 1.1), xycoords='axes fraction', fontsize=14, xytext=(0, 0), textcoords='offset points',ha='right', va='top')
+    print(sc_list)
 
+def single_compare():
+    file = []
+    # file.append(h5py.File(".\\data\\MERA single\\SVDbasic.hdf5", "r"))
+    # file.append(h5py.File(".\\data\\MERA single\\SVD.hdf5", "r"))
+    # file.append(h5py.File(".\\data\\MERA single\\SVDnesterov.hdf5", "r"))
+    # file.append(h5py.File(".\\data\\MERA single\\SVDAdam.hdf5", "r"))
+    # file.append(h5py.File(".\\data\\MERA single\\SVDRMSprop.hdf5", "r"))
+
+    # file.append(h5py.File(".\\data\\MERA single\\EVnonlift.hdf5", "r"))
+    # file.append(h5py.File(".\\data\\MERA single\\SVDnonlift.hdf5", "r"))
+    # file.append(h5py.File(".\\data\\MERA single\\Mixnonlift2.hdf5", "r"))
+    # file.append(h5py.File(".\\data\\MERA single\\EV.hdf5", "r"))
+    # file.append(h5py.File(".\\data\\MERA single\\SVD.hdf5", "r"))
+    # file.append(h5py.File(".\\data\\MERA single\\Mix2.hdf5", "r"))
+    file.append(h5py.File(".\\data\\MERA single\\Mix2 large.hdf5", "r"))
+    
+    setting = file[0][("setting")]
+    repeat = int(setting[1])
+
+    fig = plt.figure('MERA')
+    ax = fig.add_subplot(1, 1, 1)
+    #, 'royalblue'
+    # colors = ['forestgreen', 'orange', 'purple', 'forestgreen', 'orange', 'purple']
+    # linestyles = ['--', '--', '--', '-', '-', '-']
+    # label_list = ['Evenbly-Vidal without lifting', 'SGD with momentum without lifting', 'RandomMix without lifting', 'Evenbly-Vidal', 'SGD with momentum', 'RandomMix']
+    # select_list = [0,1,0,0,1,0]
+    linestyles = ['--', '-', '-', '-', '-']
+    label_list = ['Basic', 'SGD with momentum', 'SGD with nesterov momentum', 'Adam', 'RMSprop']
+    colors = ['forestgreen', 'royalblue', 'orange', 'crimson', 'purple']
+    select_list = [0,1,0,0,2]
+
+    for i in range(len(file)):
+        error_list = file[i][("error_list")]
+        epoch_list = file[i][("epoch")]
+        for j in range(repeat):
+            ax.loglog(range(0, sum(epoch_list), 5), error_list[j], label=label_list[i], color=colors[i], linestyle=linestyles[i])
+
+        # ax.loglog(range(0, sum(epoch_list), 5), error_list[select_list[i]], label=label_list[i], color=colors[i], linestyle=linestyles[i])
+        # print(file[i][("time_list")][select_list[i]])
+
+    ax.legend(loc='upper right', fontsize=12)
+    #ax.set_yscale('log')
+    ax.set_xlabel('Iterations', fontsize=14)
+    ax.set_ylabel('Energy error', fontsize=14)
+    ax.tick_params(labelsize=13)
+
+def single_compare2():
+    file = []
+    file.append(h5py.File(".\\data\\MERA single\\EV 7.hdf5", "r"))
+    file.append(h5py.File(".\\data\\MERA single\\Mix 7.hdf5", "r"))
+    setting = file[0][("setting")]
+    repeat = int(setting[1])
+
+    fig = plt.figure('MERA')
+    ax = fig.add_subplot(1, 1, 1)
+
+    linestyles = ['--', '-', '-', '-', '-']
+    label_list = ['Basic', 'SGD with momentum', 'SGD with nesterov momentum', 'Adam', 'RMSprop']
+    colors = ['forestgreen', 'royalblue', 'orange', 'crimson', 'purple']
+
+    for i in range(len(file)):
+        error_list = file[i][("error_list")]
+        time_list = file[i][("time_list")]
+        for j in range(repeat):
+            if not j:
+                ax.loglog(time_list[j], error_list[j], label=label_list[i], color=colors[i], linestyle=linestyles[i])
+            else:
+                ax.loglog(time_list[j], error_list[j], color=colors[i], linestyle=linestyles[i])
+
+    ax.legend(loc='upper right', fontsize=12)
+    #ax.set_yscale('log')
+    ax.set_xlabel('Iterations', fontsize=14)
+    ax.set_ylabel('Energy error', fontsize=14)
+    ax.tick_params(labelsize=13)
 
 if __name__ == "__main__":
-    simple()
-    # g_function_test()
-    # g_function()
+    # single_repeat()
     # compare_method()
+    # single_compare()
+    single_compare2()
+    r = np.load('.\\data\\MERA single\\test.npz',allow_pickle=True)
+    print(r['tl'][0])
 
     plt.show()

@@ -98,18 +98,21 @@ def iso_sgd(params: List[Tensor],
             else:
                 d_p = buf
 
-        dims = param.size()
-        bond_in, _ = param.leg_type
-        dim1 = np.prod(dims[:bond_in])
-        dim2 = np.prod(dims[bond_in:])
-        X = param.data.view(dim1, dim2)
-        dX = d_p.data.view(dim1, dim2)
+        if hasattr(param, 'leg_type'):
+            dims = param.size()
+            bond_in, _ = param.leg_type
+            dim1 = np.prod(dims[:bond_in])
+            dim2 = np.prod(dims[bond_in:])
+            X = param.data.view(dim1, dim2)
+            dX = d_p.data.view(dim1, dim2)
 
-        G, A = grad_proj(X, dX)
-        momentum_buffer_list[i] = torch.clone(G.view(dims)).detach()
-        X_out = retraction(X, G, A, lr, method=method, adapt=True)
-        param.data.fill_(0)
-        param.data += X_out.view(dims).to(param.device)
+            G, A = grad_proj(X, dX)
+            momentum_buffer_list[i] = torch.clone(G.view(dims)).detach()
+            X_out = retraction(X, G, A, lr, method=method, adapt=True)
+            param.data.fill_(0)
+            param.data += X_out.view(dims).to(param.device)
+        else:
+            param.add_(d_p, alpha=-lr)
 
 
 def iso_adam(params: List[Tensor],

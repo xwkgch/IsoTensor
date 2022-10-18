@@ -16,7 +16,7 @@ class MERAMonitor(object):
         self.time_start=time.time()
         # print('\n')
 
-    def display(self, loss, opt, stride=5, container=[]):
+    def display(self, loss, opt, stride=5, container=[], timestamp=[]):
         r"""display the basic MERA optimization information
         """
         if self.count % stride == 0:
@@ -26,10 +26,12 @@ class MERAMonitor(object):
                 energy = loss.item() + self.h.bias
             
             self.E_error = abs(energy - self.h.E_exact)
+            time_tmp = time.time()-self.time_start
             
-            print('\repoch %d: energy err = %e, chi = %f, lr = %f, %s' % (self.count, self.E_error, self.net.chi[-1], opt.param_groups[0]['lr'], opt.label), end='')
+            print('\repoch %d: time = %f, energy err = %e, chi = %f, lr = %f, %s' % (self.count, time_tmp, self.E_error, self.net.chi[-1], opt.param_groups[0]['lr'], opt.label), end='')
 
             container.append(self.E_error)
+            timestamp.append(time_tmp)
 
         self.count += 1
 
@@ -38,7 +40,8 @@ class MERAMonitor(object):
         r"""Timing over
         """
         time_end=time.time()
-        print('\nTime used: ', time_end-self.time_start)
+        self.time = time_end-self.time_start
+        print('\nTime used: ', self.time)
 
 class TNRMonitor(object):
     r"""Monitoring computation process of tensor network optimization. Timing starts at the instantiation.

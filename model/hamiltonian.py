@@ -51,11 +51,11 @@ class Hamiltonian(object):
             self.g = kwargs['g']
         self.name = 'Heisenberg XY'
         self.description = ''
-        self.dtype=torch.cdouble
+        self.dtype=torch.double
 
         sX = torch.tensor([[0, 1.0], [1.0, 0]], dtype=self.dtype)
-        sY = torch.tensor([[0, -1.0j], [1.0j, 0]], dtype=self.dtype)
-        H = torch.einsum('xz, wy -> zyxw', sX, sX) + self.g * torch.einsum('xz, wy -> zyxw', sY, sY)
+        sY = torch.tensor([[0, -1.0], [1.0, 0]], dtype=self.dtype)
+        H = torch.einsum('xz, wy -> zyxw', sX, sX) - self.g * torch.einsum('xz, wy -> zyxw', sY, sY)
         H = 0.5 * (H + H.permute(1, 0, 3, 2))
         self.bias = np.amax(torch.eig(H.reshape(4, 4))[0].view(-1).numpy())
         self.ham = H - self.bias * torch.eye(4).reshape(2, 2, 2, 2)
@@ -71,12 +71,12 @@ class Hamiltonian(object):
             self.g = kwargs['g']
         self.name = 'Heisenberg XXZ'
         self.description = ''
-        self.dtype=torch.cdouble
+        self.dtype=torch.double
 
         sX = torch.tensor([[0, 1.0], [1.0, 0]], dtype=self.dtype)
-        sY = torch.tensor([[0, -1.0j], [1.0j, 0]], dtype=self.dtype)
+        sY = torch.tensor([[0, -1.0], [1.0, 0]], dtype=self.dtype)
         sZ = torch.tensor([[1.0, 0], [0, -1.0]], dtype=self.dtype)
-        H = torch.einsum('xz, wy -> zyxw', sX, sX) + torch.einsum('xz, wy -> zyxw', sY, sY) + self.g * torch.einsum('xz, wy -> zyxw', sZ, sZ)
+        H = torch.einsum('xz, wy -> zyxw', sX, sX) - torch.einsum('xz, wy -> zyxw', sY, sY) + self.g * torch.einsum('xz, wy -> zyxw', sZ, sZ)
         H = 0.5 * (H + H.permute(1, 0, 3, 2))
         self.bias = np.amax(torch.eig(H.reshape(4, 4))[0].view(-1).numpy())
         self.ham = H - self.bias * torch.eye(4).reshape(2, 2, 2, 2)

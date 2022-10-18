@@ -10,12 +10,16 @@ This project is used for the paper "Differentiable Programming of Isometric Tens
 ## In future:
 * More models, optimizers and retraction methods
 * Layers for variation structures of MERA and TNR
-* Quantum machine learning
+* Quantum machine learning and quantum computing
 * ...
 ## Dependencies
 The code requires `Python` and `PyTorch`, with optional CUDA support.
 
 # Gallery
+## A Ternary MERA
+<p align="center">
+  <img src="docs/MERA.png" width="400">
+</p>
 
 ## Computation process of MERA
 <p align="center">
@@ -27,11 +31,17 @@ The code requires `Python` and `PyTorch`, with optional CUDA support.
   <img src="docs/TNRgraph.png" width="850">
 </p>
 
-## Comparing methods
+## Network layers of TNR
 <p align="center">
-  <img src="docs/MERAlossIsing.png" width="400">
+  <img src="docs/TNRmode.png" width="850">
 </p>
-The comparison of Evenbly-Vidal method and random mixed method in MERA. Cusps here indicate the position of lifting bond dimensions.
+
+
+## Efficiency comparing of these methods
+<p align="center">
+  <img src="docs/MERAtime.png" width="400">
+</p>
+Relative energy errors of Ising model as functions of time for conventional algorithm, differentiable programming with Evenbly-Vidal method in CPU, differentiable programming with Evenbly-Vidal method in GPU, and differentiable programming with random Mixing method in GPU.
 
 ## Scaling dimensions
 <p align="center">
